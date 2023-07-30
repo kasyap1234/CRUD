@@ -1,32 +1,40 @@
-
-
+// todos.service.ts
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Todo, TodoDocument } from './todo.model';
+import { Todo, TodoDocument } from './todo.model'; // Import TodoDocument
+import {model} from 'mongoose'; 
+
+import { AbstractRepository } from '../../repository/abstract.repository';
+
 
 @Injectable()
 export class TodosService {
-  constructor(@InjectModel(Todo.name) private readonly todoModel: Model<TodoDocument>) {}
+  constructor(private readonly abstractRepository: AbstractRepository<TodoDocument>) {}
 
   async findAll(): Promise<Todo[]> {
-    return this.todoModel.find().exec();
+    return this.abstractRepository.findAll();
   }
 
-  async findOne(id: string): Promise<Todo> {
-    return this.todoModel.findById(id).exec();
+  async findOne(id: string): Promise<Todo | null> {
+    return this.abstractRepository.findById(id);
   }
 
   async create(todo: Todo): Promise<Todo> {
-    const createdTodo = new this.todoModel(todo);
-    return createdTodo.save();
+    const todoDocument: TodoDocument = Object.assign(new this.abstractRepository.model(), todo);
+    return this.abstractRepository.create(todoDocument);
   }
 
-  async update(id: string, todo: Todo): Promise<Todo> {
-    return this.todoModel.findByIdAndUpdate(id, todo, { new: true }).exec();
+  async update(id: string, todo: Partial<Todo>): Promise<Todo | null> {
+    return this.abstractRepository.update(id, todo);
   }
 
-  async delete(id: string): Promise<Todo> {
-    return this.todoModel.findByIdAndRemove(id).exec();
+  async delete(id: string): Promise<Todo | null> {
+    return this.abstractRepository.delete(id);
   }
+
+  
+  
+
+ 
 }
+
+
